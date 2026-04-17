@@ -42,8 +42,16 @@ agent = ResearchAgent()
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     global _is_ready
+    logger.info("connecting to redis", extra={"event": "startup_redis_check", "instance_id": INSTANCE_ID})
     redis_client = get_redis()
-    redis_client.ping()
+    try:
+        redis_client.ping()
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(
+            "redis startup check failed",
+            extra={"event": "startup_redis_failed", "instance_id": INSTANCE_ID},
+        )
+        raise RuntimeError(f"Redis startup check failed: {exc}") from exc
     _is_ready = True
     logger.info("agent started", extra={"event": "startup", "instance_id": INSTANCE_ID})
     yield
@@ -61,7 +69,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=settings.allowed_origins_list,
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type", "X-API-Key"],
 )

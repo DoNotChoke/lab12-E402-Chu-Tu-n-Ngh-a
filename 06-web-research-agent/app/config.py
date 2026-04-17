@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field, field_validator
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,9 +27,7 @@ class Settings(BaseSettings):
     serper_api_key: str = ""
 
     agent_api_key: str = "dev-key-change-me"
-    allowed_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:3000", "http://localhost:8080"]
-    )
+    allowed_origins: str = "http://localhost:3000,http://localhost:8080"
 
     redis_url: str = "redis://localhost:6379/0"
     session_ttl_seconds: int = 60 * 60 * 24 * 7
@@ -48,12 +46,10 @@ class Settings(BaseSettings):
     search_tool_cost_usd: float = 0.001
     fetch_tool_cost_usd: float = 0.002
 
-    @field_validator("allowed_origins", mode="before")
-    @classmethod
-    def _parse_allowed_origins(cls, value: object) -> list[str] | object:
-        if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def allowed_origins_list(self) -> list[str]:
+        return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
 
 
 @lru_cache

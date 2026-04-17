@@ -1,0 +1,7 @@
+fastapi==0.136.0
+uvicorn[standard]==0.44.0
+redis==7.4.0
+pydantic-settings==2.13.1
+openai==2.32.0
+langchain-community==0.4.1
+crawl4ai==0.8.6

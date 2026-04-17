@@ -1,0 +1,28 @@
+services:
+  - type: redis
+    name: web-research-agent-redis
+    plan: starter
+    ipAllowList: []
+
+  - type: web
+    name: web-research-agent
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_VERSION
+        value: "1.0.0"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SERPER_API_KEY
+        sync: false
+      - key: AGENT_API_KEY
+        generateValue: true
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: web-research-agent-redis
+          property: connectionString
